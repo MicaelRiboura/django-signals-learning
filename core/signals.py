@@ -5,8 +5,8 @@ from .models import Profile
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(usuario=instance)
-    
-    print('Signal chamado com sucesso')
+    elif not hasattr(instance, 'profile'):
+            Profile.objects.create(usuario=instance)
 
 
 post_save.connect(create_profile, sender=User)
