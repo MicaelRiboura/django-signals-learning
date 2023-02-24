@@ -12,8 +12,8 @@ def employee_created(sender, instance, created, **kwargs):
             # Ordena por data do turno e obtém o primeiro objeto
             free_shift = Shifts.objects.annotate(employee_count=Count('employees_shift')) \
                 .filter(employee_count__lt=3).order_by('shift_date').first()
-        except (Shifts.DoesNotExists, IndexError, Exception,) as e:
-            print('free_shift error: ', e)
+        except:
+            print('free_shift Error')
             free_shift = None
         # Checa se turno vazio existe
         if free_shift:
@@ -26,8 +26,8 @@ def employee_created(sender, instance, created, **kwargs):
                 try:
                     latest_date = Shifts.objects.order_by('-shift_date').values('shift_date').first()
                     latest_date = latest_date['shift_date'] + datetime.timedelta(days=1)
-                except (Shifts.DoesNotExist, IndexError, Exception) as e:
-                    print('latest_date Error: ', e)
+                except:
+                    print('latest_date Error')
                     latest_date = None
                 # Checa se há pelo menos um objeto no Banco de Dados
                 if latest_date:
@@ -41,14 +41,14 @@ def employee_created(sender, instance, created, **kwargs):
                     new_shift.save()
                     new_shift.employees_shift.add(instance.id)
 
-            except (Shifts.DoesNotExist, Exception) as e:
-                print(e)
+            except:
+                print('error')
 
 
 @receiver(pre_save, sender=Employees)
 def wipe_expired_shifts(sender, **kwargs):
-    current_date = datetime.date.today()
+    current_date = datetime.today()
     try:
         Shifts.objects.filter(shift_date__lt=current_date).delete()
-    except (Shifts.DoesNotExist, Exception) as e:
+    except:
         print('Wipe redundant shifts Error: ', e)
