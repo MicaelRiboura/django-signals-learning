@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from core.models.employee_model import Employees
 from core.models.shift_model import Shifts
@@ -43,3 +43,12 @@ def employee_created(sender, instance, created, **kwargs):
 
             except (Shifts.DoesNotExist, Exception) as e:
                 print(e)
+
+
+@receiver(pre_save, sender=Employees)
+def wipe_expired_shifts(sender, **kwargs):
+    current_date = datetime.date.today()
+    try:
+        Shifts.objects.filter(shift_date__lt=current_date).delete()
+    except (Shifts.DoesNotExist, Exception) as e:
+        print('Wipe redundant shifts Error: ', e)
